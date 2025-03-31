@@ -12,72 +12,164 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Attention: Java 23 est très récent, assurez-vous de la compatibilité des libs -->
         <maven.compiler.target>23</maven.compiler.target>
         <maven.compiler.source>23</maven.compiler.source>
         <junit.version>5.11.0</junit.version>
+        <jjwt.version>0.11.5</jjwt.version>
+        <!-- Définir les versions Jakarta EE pour la cohérence -->
+        <jakartaee-api.version>10.0.0</jakartaee-api.version>
+        <jersey.version>3.1.3</jersey.version>
+        <hibernate.version>6.3.1.Final</hibernate.version>
+        <!-- Utiliser une version stable de Weld SE compatible CDI 4.0 (Jakarta EE 10) -->
+        <weld.version>5.1.2.Final</weld.version>
+        <mysql.connector.version>8.0.33</mysql.connector.version> <!-- Version plus récente -->
     </properties>
 
     <dependencies>
+        <!-- === API Jakarta EE === -->
+        <!-- Servlet API (fournie par Tomcat) -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+            <version>${jakartaee-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- API nécessaires pour Weld/JPA/JTA que Tomcat ne fournit pas nativement -->
+        <!-- CDI API (pour @ApplicationScoped, etc.) -->
+        <!-- Normalement incluse via jakartaee-web-api, mais l'ajouter explicitement -->
+        <!-- peut parfois aider si la version fournie ne suffit pas pour Weld SE -->
         <dependency>
             <groupId>jakarta.enterprise</groupId>
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
-            <version>3.0.0</version>
-            <scope>provided</scope>
+            <version>4.0.1</version> <!-- Version CDI 4.0 pour Jakarta EE 10 -->
+            <scope>compile</scope> <!-- Nécessaire pour Weld SE dans Tomcat -->
         </dependency>
+
+        <!-- JPA API (pour @PersistenceContext, EntityManager) -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version> <!-- Version JPA 3.1 pour Jakarta EE 10 -->
+            <scope>compile</scope> <!-- Nécessaire pour Hibernate dans Tomcat -->
+        </dependency>
+
+        <!-- Transaction API (pour @Transactional) -->
+        <dependency>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
+            <version>2.0.1</version> <!-- Version JTA 2.0 pour Jakarta EE 10 -->
+            <scope>compile</scope> <!-- Nécessaire pour @Transactional avec Weld/Hibernate -->
+        </dependency>
+
+        <!-- Injection API (pour @Inject) -->
+        <!-- Souvent transitive, mais ajoutons-la pour être sûr -->
+        <dependency>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+            <version>2.0.1</version> <!-- Version Inject 2.0 pour Jakarta EE 10 -->
+            <scope>compile</scope> <!-- Nécessaire pour Weld SE -->
+        </dependency>
+
+
+        <!-- === Implémentations (CDI, JPA, JAX-RS, etc.) === -->
+
+        <!-- CDI Implementation (Weld SE) -->
+        <dependency>
+            <groupId>org.jboss.weld.se</groupId>
+            <artifactId>weld-se-core</artifactId>
+            <version>${weld.version}</version> <!-- Version stable de Weld 5.x (CDI 4.0) -->
+        </dependency>
+
+        <!-- JAX-RS Implementation (Jersey) -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- Jersey Integration with CDI (Weld SE) -->
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-cdi2-se</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
+        <!-- JPA Implementation (Hibernate) -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.0.2.Final</version>
+            <version>${hibernate.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <!-- Dépendance Hibernate pour l'intégration CDI (si nécessaire, souvent géré par Weld/Jersey) -->
+        <!-- <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-cdi</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency> -->
+
+        <!-- Driver BDD -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.15</version>
+            <version>${mysql.connector.version}</version>
+            <scope>runtime</scope> <!-- Typiquement runtime, car utilisé par l'impl JPA -->
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+
+        <!-- JAXB (souvent nécessaire avec Java > 8) -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <!-- La version doit être compatible avec Jakarta EE 10 -->
+            <version>4.0.5</version>
+        </dependency>
+
+
+        <!-- === Sécurité (JWT) === -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Ces dépendances ne sont probablement pas nécessaires pour votre cas d'usage actuel -->
+        <!-- Elles sont liées à des mécanismes de sécurité EE plus avancés -->
+        <!-- <dependency>
+             <groupId>jakarta.security.jacc</groupId>
+             <artifactId>jakarta.security.jacc-api</artifactId>
+             <version>1.6.1</version>
+         </dependency>
+         <dependency>
+             <groupId>jakarta.security.enterprise</groupId>
+             <artifactId>jakarta.security.enterprise-api</artifactId>
+             <version>3.0.0</version>
+         </dependency> -->
+
+        <!-- === Utilitaires === -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.containers</groupId>
-            <artifactId>jersey-container-servlet</artifactId>
-            <version>4.0.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-json-jackson</artifactId>
-            <version>4.0.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.inject</groupId>
-            <artifactId>jersey-cdi2-se</artifactId>
-            <version>4.0.0-M1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>7.0.0.Beta1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.weld.se</groupId>
-            <artifactId>weld-se-core</artifactId>
-            <version>6.0.0.Beta4</version>
-        </dependency>
+
+        <!-- === Test === -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -93,11 +185,22 @@
     </dependencies>
 
     <build>
+        <finalName>boutique_war</finalName> <!-- Assurez-vous que le nom final correspond à votre déploiement -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.4.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version> <!-- Version récente du compiler plugin -->
+                <configuration>
+                    <!-- Répéter les propriétés ici garantit leur utilisation -->
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

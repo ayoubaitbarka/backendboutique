@@ -5,7 +5,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 public class Session {
-    private static final EntityManagerFactory emf= Persistence.createEntityManagerFactory("TP1");
+    private static final EntityManagerFactory emf= Persistence.createEntityManagerFactory("boutique");
 
     public EntityManager EntityManager(){
            EntityManager entityManager;

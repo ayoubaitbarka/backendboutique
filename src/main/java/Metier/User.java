@@ -1,15 +1,13 @@
 package Metier;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import Metier.Enums.Role;
 
 @Entity
 
 @Inheritance(strategy = InheritanceType.JOINED)
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -27,6 +25,7 @@ public abstract class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+
     @Override
     public String toString() {
         return "user{" +
@@ -38,5 +37,17 @@ public abstract class User {
                 ", telephone='" + telephone + '\'' +
                 ", role=" + role +
                 '}';
+    }
+
+    public User (String nom, String prenom, String email, String motDePasse, String telephone, Role role) {
+        this.nom = nom;
+        this.prenom = prenom;
+        this.email = email;
+        this.motDePasse = motDePasse;
+        this.telephone = telephone;
+        this.role = role;
+    }
+
+    public void setPassword(Object o) {
     }
 }

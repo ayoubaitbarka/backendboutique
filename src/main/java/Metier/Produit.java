@@ -21,15 +21,18 @@ public class Produit {
     private String description;
     private double prix;
     private int quantiteStock;
-    @OneToMany(mappedBy = "produit")
+
+    @OneToMany(mappedBy = "produit",fetch = FetchType.EAGER)
     private List<Avis> avis;
 
     public Produit(String nom, String description, double prix,int quantiteStock) {
         this.description=description;
         this.nom=nom;
         this.prix=prix;
+        this.quantiteStock=quantiteStock;
         avis=new ArrayList<>();
     }
+
 
     @Override
     public String toString() {
