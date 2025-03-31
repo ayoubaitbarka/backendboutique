@@ -1,5 +1,6 @@
 package Metier;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@DiscriminatorValue("LIVREUR")
 public class Livreur extends User {
     private String entrepriseLivraison;
     @OneToMany(mappedBy = "livreur")

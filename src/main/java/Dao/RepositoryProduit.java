@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-// Pas d'@ApplicationScoped
 public class RepositoryProduit {
 
     private Session session = new Session();
@@ -126,22 +125,6 @@ public class RepositoryProduit {
             em.getTransaction().commit();
             return produits;
 
-           /*
-            List<Produit> produits = new ArrayList<>();
-
-            // Ajout manuel des produits avec des valeurs différentes
-            produits.add(new Produit("Pomme", "Fruit", 2, 50));
-            produits.add(new Produit("Lait", "Produit laitier", 1, 30));
-            produits.add(new Produit("Pain", "Boulangerie", 1, 20));
-            produits.add(new Produit("Riz", "Céréale", 5, 15));
-            produits.add(new Produit("Tomate", "Légume", 3, 40));
-
-            return produits;
-
-            */
-
-
-
         } catch (Exception e) {
             System.err.println("Error fetching all produits: " + e.getMessage());
             e.printStackTrace();
@@ -155,7 +138,7 @@ public class RepositoryProduit {
     }
 
 
-    // OK : khdama
+                            // OK : khdama
     public Produit findById(Long id) {
         EntityManager em = session.EntityManager();
         em.getTransaction().begin();
@@ -176,6 +159,7 @@ public class RepositoryProduit {
             }
         }
     }
+                                   // khdama
 
     public List<Produit> findProduitByName(String namePattern) {
         EntityManager em = null;
@@ -196,6 +180,8 @@ public class RepositoryProduit {
         }
     }
 
+
+
     public boolean existsById(Long id) {
         EntityManager em = null;
         try {
@@ -215,6 +201,8 @@ public class RepositoryProduit {
             }
         }
     }
+
+
 
     // La méthode delete(Produit produit) est moins utile sans contexte managé,
     // mais on peut la laisser si besoin en utilisant merge.

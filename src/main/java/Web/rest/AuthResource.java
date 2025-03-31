@@ -1,5 +1,6 @@
 package Web.rest;
 
+import Metier.Admin;
 import Metier.User;
 import Dao.RepositoryUser;
 import Securite.JwtTokenProvider;
@@ -13,12 +14,15 @@ public class AuthResource {
     private final RepositoryUser repositoryUser = new RepositoryUser();
     private final JwtTokenProvider tokenProvider = new JwtTokenProvider();
 
+
+                            // OK khdaama jrrbtha b postman :
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(User userCredentials) {
+    public Response login(Admin userCredentials) {
         if (userCredentials == null || userCredentials.getEmail() == null || userCredentials.getMotDePasse() == null) {
+            System.out.println("mochkiiiiiiiiil m999wd");
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"Email and password are required.\"}")
                     .build();
@@ -38,6 +42,8 @@ public class AuthResource {
 
             // Générer un JWT pour l'utilisateur
             String token = tokenProvider.generateToken(user);
+
+            System.out.println("le token dyalna :"+token);
 
             // Retourner le token dans la réponse
             return Response.ok("{\"token\":\"" + token + "\"}").build();

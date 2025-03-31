@@ -102,7 +102,7 @@ public class ProduitResource {
          * choof classe AuthRessource tma fiin drt methode dyal login oo une fois idiir login khasso iretourner wahd token l front omn moraha anb9aw nkhdmooh f ay requete bra idiirha
          * bach ndiir le test rah mchiit saybt wahd fonction ohaawlt ndiirha f console dyan navigateur ms taytl3 wahd erreur.
          *
-         * hahiiya l foct :
+         * hahiiya l foct :    (rah khdm dakchii flkhr ms 9raa bach tfhm ach tarii)
 
 
 
@@ -148,6 +148,14 @@ login("admin@gmail.com", "123456").then(token => {
          *  tan3aw nchoofha lamal9itiich ntaa llhl
          *
          * fach ndiiro had test dyal post mn moraha radii n9droo ndiiro test ldook les methodes li kaynin f UserRessource
+         *
+         * mohiim diik classe dyal CorsFilter rah drt liiha commnataire hitach chft dakchii khdam bla biiha hhhhhhh
+         *
+         * mohiim rah tkhariit m3a dakchii mnb3d oo ssf diik post dyal login rah wlaat khdama mzn o rah tatrj3 token l front
+         *
+         *  choof classe AuthRessource tma fiin drt methode dyal login oo une fois idiir login khasso iretourner wahd token l front omn moraha anb9aw nkhdmooh f ay requete bra idiirha
+         *
+         *
          *
          * */
 

@@ -45,16 +45,11 @@ login("admin@gmail.com", "123456").then(token => {
   }
 });
 
-                    */
+        */
 
 
-
-
-
-
-
-
-package Securite; // Ou un autre package approprié comme Web.config
+/*
+package Securite;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
@@ -117,3 +112,5 @@ public class CorsFilter implements ContainerResponseFilter {
         }
     }
 }
+*/
+

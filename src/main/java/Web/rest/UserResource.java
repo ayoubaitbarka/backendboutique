@@ -1,8 +1,10 @@
 package Web.rest;
 
 
+import Dao.RepositoryProduit;
 import Metier.Admin;
 import Metier.Enums.Role;
+import Metier.Produit;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -61,7 +63,7 @@ public class UserResource {
 
             return userOpt
                     .map(user -> {
-                        user.setPassword(null); // Ne JAMAIS renvoyer le mot de passe/hash
+                        user.setMotDePasse(null); // Ne JAMAIS renvoyer le mot de passe/hash
                         return Response.ok(user).build();
                     })
                     .orElseGet(() -> {
@@ -109,7 +111,7 @@ public class UserResource {
                 // Placeholder actuel - NE PAS UTILISER EN PRODUCTION
                 System.out.println("WARN: Hashing password with placeholder logic!"); // Log pour rappel
                 String placeholderHash = "hashed_" + user.getMotDePasse();
-                user.setPassword(placeholderHash);
+                user.setMotDePasse(placeholderHash);
 
             } catch (Exception hashException) {
                 System.err.println("FATAL: Password hashing failed: " + hashException.getMessage());
@@ -121,7 +123,7 @@ public class UserResource {
             User savedUser = repositoryUser.save(user);
 
             if (savedUser != null && savedUser.getId() != null) {
-                savedUser.setPassword(null); // Ne pas renvoyer le hash dans la réponse
+                savedUser.setMotDePasse(null); // Ne pas renvoyer le hash dans la réponse
 
                 URI createdUri = UriBuilder.fromResource(UserResource.class).path("{id}").resolveTemplate("id", savedUser.getId()).build();
                 return Response.created(createdUri).entity(savedUser).build();
@@ -152,7 +154,7 @@ public class UserResource {
             // Utilise l'instance manuelle
             User user = repositoryUser.findById(id);
             if (user != null) {
-                user.setPassword(null); // Masquer mot de passe/hash
+                user.setMotDePasse(null); // Masquer mot de passe/hash
                 return Response.ok(user).build();
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"User with ID " + id + " not found.\"}").build();
@@ -184,7 +186,7 @@ public class UserResource {
 
             users.add(new Admin("Martin", "Sophie", "sophie.martin@email.com", "sophie456", "0611223344", Role.ADMIN));
             users.add(new Admin("Durand", "Paul", "paul.durand@email.com", "paul789", "0622334455", Role.ADMIN));
-            List<User> usersSafe = users.stream().peek(u -> u.setPassword(null)).collect(Collectors.toList());
+            List<User> usersSafe = users.stream().peek(u -> u.setMotDePasse(null)).collect(Collectors.toList());
             return Response.ok(usersSafe).build();
         } catch (Exception e) {
             System.err.println("Error in UserResource.getAllUsers: " + e.getMessage());
@@ -219,7 +221,7 @@ public class UserResource {
                     // Placeholder actuel - NE PAS UTILISER EN PRODUCTION
                     System.out.println("WARN: Hashing password with placeholder logic during update!"); // Log pour rappel
                     String placeholderHash = "hashed_" + userData.getMotDePasse();
-                    userData.setPassword(placeholderHash);
+                    userData.setMotDePasse(placeholderHash);
 
                 } catch (Exception hashException) {
                     System.err.println("FATAL: Password hashing failed during update: " + hashException.getMessage());
@@ -228,7 +230,7 @@ public class UserResource {
                 }
             } else {
                 // Si non fourni, mettre explicitement à null pour que le repository l'ignore
-                userData.setPassword(null);
+                userData.setMotDePasse(null);
             }
 
             // Appel de la méthode du repository instancié manuellement
@@ -236,7 +238,7 @@ public class UserResource {
 
             return updatedUserOpt
                     .map(user -> {
-                        user.setPassword(null); // Ne pas renvoyer le hash
+                        user.setMotDePasse(null); // Ne pas renvoyer le hash
                         return Response.ok(user).build();
                     })
                     .orElseGet(() -> Response.status(Response.Status.NOT_FOUND)
@@ -274,4 +276,11 @@ public class UserResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"An error occurred while deleting the user.\"}").build(); // 500
         }
     }
+
+
+    //************************************************************************************************
+
+
+
+
 }
