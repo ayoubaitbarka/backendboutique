@@ -15,7 +15,7 @@ public class HelloResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Produit hello() {
-        return new Produit("salma", "salma", 10, 10);
+        return new Produit();
 
     }
 

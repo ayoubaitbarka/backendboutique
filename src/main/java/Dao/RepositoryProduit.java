@@ -1,9 +1,11 @@
 package Dao;
 
+import Metier.Categorie;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction; // Import pour la transaction manuelle
 // Pas d'imports CDI ou Transactional ici
 import Metier.Produit;
+import jakarta.persistence.TypedQuery;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,42 +77,6 @@ public class RepositoryProduit {
         }
     }
 
-    // Pas de @Transactional
-    public Optional<Produit> updateProduit(Long id, Produit produitData) {
-        EntityManager em =null;
-        EntityTransaction tx = null;
-        try {
-            em = session.EntityManager();
-            tx = em.getTransaction();
-            tx.begin();
-
-            Produit existingProduit = em.find(Produit.class, id); // Trouver l'existant
-            if (existingProduit != null) {
-                // Mettre à jour les champs de l'entité managée
-                existingProduit.setNom(produitData.getNom());
-                existingProduit.setPrix(produitData.getPrix());
-                existingProduit.setQuantiteStock(produitData.getQuantiteStock());
-                // Pas besoin de merge ou persist ici, les changements sont détectés au commit
-
-                tx.commit(); // Commit applique les changements
-                return Optional.of(existingProduit); // Retourner l'entité mise à jour
-            } else {
-                tx.rollback(); // Annuler si non trouvé
-                return Optional.empty(); // Produit non trouvé
-            }
-        } catch (Exception e) {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
-            }
-            System.err.println("Error updating produit with ID " + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Optional.empty();
-        } finally {
-            if (em != null && em.isOpen()) {
-                em.close();
-            }
-        }
-    }
 
                            // OK : Khdama
 
@@ -238,4 +204,148 @@ public class RepositoryProduit {
             }
         }
     }
+
+
+
+
+
+
+      // nouvelle methodes pour faire la liés avec le front :************************************************
+
+    /**
+     * Récupère tous les produits marqués comme "featured".
+     * @return Une liste de produits "featured", ou une liste vide en cas d'erreur.
+     */
+    public List<Produit> findFeatured() {
+        EntityManager em = null;
+        try {
+            em = session.EntityManager();
+            // Pas de transaction nécessaire pour une lecture simple
+            return em.createQuery("SELECT p FROM Produit p WHERE p.featured = true", Produit.class)
+                    .getResultList();
+        } catch (Exception e) {
+            System.err.println("Error fetching featured produits: " + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList(); // Retourner une liste vide en cas d'erreur
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+
+    /**
+     * Récupère les produits appartenant à une catégorie spécifique, avec une limite optionnelle.
+     * @param categoryId L'ID de la catégorie.
+     * @param limit Le nombre maximum de produits à retourner (null ou <= 0 pour ignorer la limite).
+     * @return Une liste de produits de la catégorie, ou une liste vide en cas d'erreur.
+     */
+    public List<Produit> findByCategoryId(Long categoryId, Integer limit) {
+        EntityManager em = null;
+        try {
+            em = session.EntityManager();
+            // Pas de transaction nécessaire pour une lecture
+            TypedQuery<Produit> query = em.createQuery(
+                    "SELECT p FROM Produit p WHERE p.categorie.id = :catId ORDER BY p.nom ASC", // Ajout d'un tri par défaut
+                    Produit.class
+            );
+            query.setParameter("catId", categoryId);
+
+            if (limit != null && limit > 0) {
+                query.setMaxResults(limit); // Appliquer la limite si fournie
+            }
+
+            return query.getResultList();
+        } catch (Exception e) {
+            System.err.println("Error fetching produits by category ID " + categoryId + ": " + e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+
+    // --- MÉTHODE updateProduit MODIFIÉE (TRÈS IMPORTANT) ---
+    /**
+     * Met à jour un produit existant avec les nouvelles données fournies.
+     * Gère la mise à jour de tous les champs, y compris la relation catégorie.
+     *
+     * @param id L'ID du produit à mettre à jour.
+     * @param produitData Les nouvelles données du produit (peut être détaché).
+     * @return Un Optional contenant le produit mis à jour et managé, ou Optional.empty() si non trouvé ou en cas d'erreur.
+     */
+    public Optional<Produit> updateProduit(Long id, Produit produitData) {
+        EntityManager em = null;
+        EntityTransaction tx = null;
+        try {
+            em = session.EntityManager();
+            tx = em.getTransaction();
+            tx.begin();
+
+            Produit existingProduit = em.find(Produit.class, id); // Trouver l'entité existante
+
+            if (existingProduit != null) {
+                // Mettre à jour tous les champs pertinents depuis produitData
+                existingProduit.setNom(produitData.getNom());
+                existingProduit.setDescription(produitData.getDescription()); // Ajouter description
+                existingProduit.setPrix(produitData.getPrix()); // Assurez-vous que produitData a un BigDecimal
+                existingProduit.setQuantiteStock(produitData.getQuantiteStock());
+                existingProduit.setImageUrl(produitData.getImageUrl());     // Ajouter imageUrl
+                existingProduit.setRating(produitData.getRating());         // Ajouter rating
+                existingProduit.setFeatured(produitData.isFeatured());     // Ajouter featured (utiliser isFeatured pour boolean)
+
+                // Mettre à jour la catégorie (si fournie et valide)
+                if (produitData.getCategorie() != null && produitData.getCategorie().getId() != null) {
+                    Categorie newCategorie = em.find(Categorie.class, produitData.getCategorie().getId());
+                    if (newCategorie != null) {
+                        existingProduit.setCategorie(newCategorie); // Attacher la catégorie managée trouvée
+                    } else {
+                        // Gérer le cas où l'ID de catégorie fourni n'existe pas
+                        System.err.println("Update Error: Category with ID " + produitData.getCategorie().getId() + " not found.");
+                        tx.rollback(); // Annuler la transaction car la catégorie est invalide
+                        return Optional.empty(); // Retourner vide pour indiquer l'échec
+                    }
+                } else if (produitData.getCategorie() == null || produitData.getCategorie().getId() == null){
+                    // Si aucune info de catégorie n'est fournie dans la requête,
+                    // on ne change pas la catégorie existante.
+                    // Si vous *voulez* permettre de rendre la catégorie null (si la BDD l'autorise),
+                    // il faudrait ajouter un cas ici: existingProduit.setCategorie(null);
+                    // MAIS notre BDD a id_cat NOT NULL, donc on ne peut pas la mettre à null.
+                    System.out.println("INFO: No category update requested or category ID missing in request for product ID " + id);
+                }
+
+                // Pas besoin de em.merge() car existingProduit est déjà managé.
+                // Les changements seront automatiquement détectés et persistés au commit.
+                tx.commit(); // Valider la transaction
+                return Optional.of(existingProduit); // Retourner l'entité mise à jour
+            } else {
+                tx.rollback(); // Annuler si le produit n'a pas été trouvé
+                return Optional.empty(); // Produit non trouvé
+            }
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback(); // Annuler en cas d'erreur
+            }
+            System.err.println("Error updating produit with ID " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return Optional.empty(); // Retourner vide en cas d'erreur
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close(); // Fermer l'EntityManager
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
 }

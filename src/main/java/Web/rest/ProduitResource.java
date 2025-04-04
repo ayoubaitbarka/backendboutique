@@ -1,19 +1,5 @@
 package Web.rest;
 
-
-                        /*
-                        *  fin akhoya mohammed mrtaah hhhhhhhhh
-                        *  ltht rah les methodes lii khdamin drt foo9 mnhoom ok o url bach drya iban lik dakchi
-                        *  mohiim hbt lttht rah atl9anii charh dakchii lii drt.
-                        *
-                        * bniisba ldook les repository rah khrb9t fihom flwl ms mnb3d rdiit dakchi lwlanii les methode slii mbdliin chwiiya
-                        *
-                        *
-                        *
-                        *
-                        * */
-
-// Pas d'import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -34,25 +20,6 @@ import java.util.Optional;
 public class ProduitResource {
 
     private final RepositoryProduit repositoryProduit = new RepositoryProduit();
-
-
-                    // OK : khdama url : http://localhost:8080/boutique_war/api/produits/
-    @GET
-    public Response getAllProduits() {
-        try {
-
-            List<Produit> produits = repositoryProduit.findAll();
-            return Response.ok(produits).build(); // Retourne 200 OK avec la liste (vide ou non)
-        } catch (Exception e) {
-            // Log l'erreur qui pourrait survenir DANS la ressource elle-même
-            // (les erreurs du repo sont logguées dans le repo)
-            System.err.println("Error in ProduitResource.getAllProduits: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\":\"An internal error occurred while retrieving products.\"}")
-                    .build();
-        }
-    }
 
 
 
@@ -97,67 +64,6 @@ public class ProduitResource {
         }
     }
 
-         /* fhad l methode bdbt hiiya fiin ohlt! khassna ndiiro authentification user admin howa lwl
-         * ohitach bdiina tandiro securité au meme temps khassna ntb9ooha
-         * choof classe AuthRessource tma fiin drt methode dyal login oo une fois idiir login khasso iretourner wahd token l front omn moraha anb9aw nkhdmooh f ay requete bra idiirha
-         * bach ndiir le test rah mchiit saybt wahd fonction ohaawlt ndiirha f console dyan navigateur ms taytl3 wahd erreur.
-         *
-         * hahiiya l foct :    (rah khdm dakchii flkhr ms 9raa bach tfhm ach tarii)
-
-
-
-            async function login(email, password) {
-                    const url = "http://localhost:8080/boutique_war/api/auth/login"; // L'URL de l'API pour la connexion
-
-                    const response = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                    "Content-Type": "application/json"
-                                     },
-                    body: JSON.stringify({
-      email: email,
-      motDePasse: password
-    })
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    const token = data.token;  // Le token JWT que tu obtiens
-    console.log("Token:", token);
-    return token;
-  } else {
-    console.error("Erreurrrr de connexion:", response.statusText);
-    return null;
-  }
-}
-
-// Exemple d'appel pour récupérer un token
-login("admin@gmail.com", "123456").then(token => {
-  if (token) {
-    // Utiliser le token pour faire un appel API sécurisé
-    fetchProduit(token);
-  }
-});
-
-
-
-
-
-         *  mohiim swlt chat 3la dak erreur galiiya chii "Cross-Origin Resource Sharing"
-         *  moraha gal liiya saayb diik classe li kayna f securité : CorsFilter rah athl mochkiil ms mabraatch ossf 3yiit
-         *  tan3aw nchoofha lamal9itiich ntaa llhl
-         *
-         * fach ndiiro had test dyal post mn moraha radii n9droo ndiiro test ldook les methodes li kaynin f UserRessource
-         *
-         * mohiim diik classe dyal CorsFilter rah drt liiha commnataire hitach chft dakchii khdam bla biiha hhhhhhh
-         *
-         * mohiim rah tkhariit m3a dakchii mnb3d oo ssf diik post dyal login rah wlaat khdama mzn o rah tatrj3 token l front
-         *
-         *  choof classe AuthRessource tma fiin drt methode dyal login oo une fois idiir login khasso iretourner wahd token l front omn moraha anb9aw nkhdmooh f ay requete bra idiirha
-         *
-         *
-         *
-         * */
 
     @POST
     @Secured(roles = {"ADMIN"})
@@ -251,4 +157,74 @@ login("admin@gmail.com", "123456").then(token => {
                     .build();
         }
     }
+
+
+    // fonctionne url : http://localhost:8080/boutique_war/api/produits
+    // pour limite de produits : http://localhost:8080/boutique_war/api/produits?limit=5
+    // pour filtrer par id de categorie : http://localhost:8080/boutique_war/api/produits?categoryId=2
+    // pour filtrer par id de categorie et limite de produits : http://localhost:8080/boutique_war/api/produits?categoryId=2&limit=5
+    @GET
+    public Response getAllOrFilterProduits(
+            @QueryParam("categoryId") Long categoryId,
+            @QueryParam("limit") Integer limit
+            // Vous pourriez ajouter d'autres paramètres de filtrage ici (featured, etc.)
+    ) {
+        try {
+            List<Produit> produits;
+            if (categoryId != null) {
+                // Filtrer par catégorie si categoryId est fourni
+                System.out.println("DEBUG: Filtering products by category ID: " + categoryId + ", Limit: " + limit);
+                produits = repositoryProduit.findByCategoryId(categoryId, limit);
+            }
+            // Le cas "featured" est géré par un endpoint séparé /featured
+            // else if (featured != null && featured) {
+            //    produits = repositoryProduit.findFeatured();
+            // }
+            else {
+                // Aucun filtre spécifique, retourner tous les produits (ou appliquer une pagination par défaut si voulu)
+                System.out.println("DEBUG: Fetching all products.");
+                produits = repositoryProduit.findAll();
+                // TODO: Ajouter une pagination par défaut à findAll si la liste peut devenir très grande.
+                // Exemple simple de limitation si limit est fourni SANS categoryId:
+                // if (limit != null && limit > 0 && limit < produits.size()) {
+                //     produits = produits.subList(0, limit);
+                // }
+            }
+            return Response.ok(produits).build();
+        } catch (Exception e) {
+            System.err.println("Error in ProduitResource.getAllOrFilterProduits: " + e.getMessage());
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"An internal error occurred while retrieving products.\"}")
+                    .build();
+        }
+    }
+
+
+             // fonctionne url : http://localhost:8080/boutique_war/api/produits/featured
+    @GET
+    @Path("/featured")
+    public Response getFeaturedProduits() {
+        try {
+            System.out.println("DEBUG: Fetching featured products.");
+            List<Produit> produits = repositoryProduit.findFeatured();
+            return Response.ok(produits).build();
+        } catch (Exception e) {
+            System.err.println("Error in ProduitResource.getFeaturedProduits: " + e.getMessage());
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"An internal error occurred while retrieving featured products.\"}")
+                    .build();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 }

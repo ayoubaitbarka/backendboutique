@@ -1,5 +1,6 @@
 package Metier;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ public class Avis {
     private Client client;
 
     @ManyToOne
+    @JsonBackReference // <-- AJOUTER CECI : Empêche la récursion lors de la sérialisation depuis Produit
     private Produit produit;
 
     private String commentaire;

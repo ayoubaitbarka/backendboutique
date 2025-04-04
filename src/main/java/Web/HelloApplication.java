@@ -1,6 +1,7 @@
 package Web;
 
 import Web.rest.AuthResource;
+import Web.rest.CategorieResource;
 import Web.rest.UserResource;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
@@ -18,6 +19,7 @@ public class HelloApplication extends Application {
         classes.add(AuthResource.class);
         classes.add(UserResource.class);
         classes.add(SecurityFilter.class);
+        classes.add(CategorieResource.class);
         return classes;
     }
 }
