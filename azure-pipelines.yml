@@ -5,6 +5,7 @@ trigger:
 
 pool:
   name: azureagent
+  vmImage: ubuntu-latest
 
 steps:
   - checkout: self
